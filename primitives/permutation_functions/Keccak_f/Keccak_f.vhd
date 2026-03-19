@@ -10,7 +10,7 @@ entity Keccak_f is
     port (
         clk, rst, enable: in std_logic;
         data_in: in std_logic_vector((25 * (2 ** L))-1 downto 0);
-        data_out: in std_logic_vector((25 * (2 ** L))-1 downto 0);
+        data_out: out std_logic_vector((25 * (2 ** L))-1 downto 0);
         done: out std_logic
     );
 end Keccak_f;
@@ -20,6 +20,7 @@ architecture Keccak_f of Keccak_f is
     constant W: natural := 2 ** L;
     constant ROUND_NUM: natural := 12 + (2*L);
     signal round_count: natural range 0 to ROUND_NUM - 1;
+    signal enable_r: std_logic;
 
     type r_array is array (0 to 4, 0 to 4) of integer;
     constant R: r_array := (
@@ -32,6 +33,7 @@ architecture Keccak_f of Keccak_f is
 
     type a_array is array (0 to 4, 0 to 4) of std_logic_vector(W-1 downto 0);
     signal A: a_array;
+    signal A_in: a_array;
 
     type rc_constant_array is array(0 to 23) of std_logic_vector(63 downto 0);
     constant rc_constant: rc_constant_array := (
@@ -78,12 +80,14 @@ architecture Keccak_f of Keccak_f is
     end function;
     constant RC: rc_array := init_rc;
 
+    signal a_test: std_logic_vector(W-1 downto 0);
     --signal B;
     signal C, D: std_logic_vector(4 downto 0);
 begin
-
+    a_test <= A(0,0);
     round: process (clk) is
         variable C, D: std_logic_vector(4 downto 0);
+        variable A_start: a_array;
         variable A_temp: a_array;
         variable B: a_array;
         variable pi_1, pi_2: std_logic_vector(W-1 downto 0);
@@ -93,8 +97,16 @@ begin
         if (rst) then
             round_count <= 0;
             done <= '0';
+            enable_r <= '0';
         elsif (rising_edge(clk)) then
-
+            if (not enable_r and enable) then
+                A_start := A_in;
+                A <= A_in;
+                round_count <= 0;
+                enable_r <= '1';
+                report to_string(A_in(0,0));
+            else
+            A_start := A;
         -- Round
             -- Theta
             for z in 0 to W-1 loop
@@ -103,18 +115,19 @@ begin
                         x_index_plus_1 := 0 when x = 4 else x+1;
                         x_index_minus_1 := 4 when x = 0 else x-1;
                         z_index_minus_1 := W-1 when z = 0 else z-1;
-                        pi_1(z) := a(x_index_minus_1,0)(z) xor a(x_index_minus_1,1)(z) xor a(x_index_minus_1,2)(z) xor a(x_index_minus_1,3)(z) xor a(x_index_minus_1,4)(z);
-                        pi_2(z) := a(x_index_plus_1,0)(z_index_minus_1) xor a(x_index_plus_1,1)(z_index_minus_1) xor a(x_index_plus_1,2)(z_index_minus_1) xor a(x_index_plus_1,3)(z_index_minus_1) xor a(x_index_plus_1,4)(z_index_minus_1);
-                        A_temp(x,y)(z) := a(x,y)(z);
+                        pi_1(z) := A_start(x_index_minus_1,0)(z) xor A_start(x_index_minus_1,1)(z) xor A_start(x_index_minus_1,2)(z) xor A_start(x_index_minus_1,3)(z) xor A_start(x_index_minus_1,4)(z);
+                        pi_2(z) := A_start(x_index_plus_1,0)(z_index_minus_1) xor A_start(x_index_plus_1,1)(z_index_minus_1) xor A_start(x_index_plus_1,2)(z_index_minus_1) xor A_start(x_index_plus_1,3)(z_index_minus_1) xor A_start(x_index_plus_1,4)(z_index_minus_1);
+                        A_temp(x,y)(z) := A_start(x,y)(z);
                     end loop;
                 end loop;
             end loop;
 
             -- Rho
+            B := (others => (others => (others => '0')));
             for x in 0 to 4 loop
                 for y in 0 to 4 loop
                     b_index := (2*x+3*y) mod 4;
-                    B(y, b_index) := a(x,y) ror r(x,y);
+                    B(y, b_index) := A_temp(x,y) ror r(x,y);
                 end loop;
             end loop;
 
@@ -132,20 +145,35 @@ begin
             --Lambda
             --for x in 0 to 4 loop
             --    for y in 0 to 4 loop
-                    A(0,0) <= A(0,0) xor RC(round_count);
-                    if round_count = ROUND_NUM-1 then
-                        round_count <= 0;
-                        done <= '1';
-                    else round_count <= round_count + 1;
-                    end if;
+            --        A(x,y) <= A_temp(x,y);
             --    end loop;
             --end loop;
+            A <= A_temp;
+
+            A(0,0) <= A(0,0) xor RC(round_count);
+            if round_count = ROUND_NUM-1 then
+                round_count <= 0;
+                done <= '1';
+                enable_r <= '0';
+            else round_count <= round_count + 1;
+            end if;
         end if;
+        end if;
+
     end process round;
 
-    --assign_data: process (all) is
-    --begin
-
-    --end process assign_data;
+    assign_data: process (all) is
+    variable index: natural;
+    begin
+        for x in 0 to 4 loop
+            for y in 0 to 4 loop
+                for z in 0 to W-1 loop
+                    index := (x * 5 * W) + (y * W) + z;
+                    data_out(index) <= A(x,y)(z);
+                    A_in(x,y)(z) <= data_in(index);
+                end loop;
+            end loop;
+        end loop;
+    end process assign_data;
 
 end Keccak_f;

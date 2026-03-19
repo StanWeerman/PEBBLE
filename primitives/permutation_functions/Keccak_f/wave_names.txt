@@ -3,3 +3,6 @@ rst
 enable
 done
 round_count
+data_in
+data_out
+a_test
