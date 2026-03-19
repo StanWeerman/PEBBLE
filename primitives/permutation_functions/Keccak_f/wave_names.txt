@@ -1,2 +1,5 @@
-in_bit
-out_bit
+clk
+rst
+enable
+done
+round_count

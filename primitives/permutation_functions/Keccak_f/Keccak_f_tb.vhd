@@ -10,27 +10,35 @@ end Keccak_f_tb;
 architecture Keccak_f_tb of Keccak_f_tb is
     signal clk: std_logic := '0';
     signal rst: std_logic := '1';
-    signal in_bit, out_bit: std_logic;
+    signal enable: std_logic := '0';
+    signal data_in: std_logic_vector(1599 downto 0) := (others => '0');
+    signal data_out: std_logic_vector(1599 downto 0);
+    signal done: std_logic;
 
 begin
     clk <= not clk after 1 ns;
 
     Keccak_f_inst: entity work.Keccak_f
      generic map(
-        WIDTH => 5
+        L => 6
     )
      port map(
-        in_bit => in_bit,
-        out_bit => out_bit
+        clk => clk,
+        rst => rst,
+        enable => enable,
+        data_in => data_in,
+        data_out => data_out,
+        done => done
     );
 
     testing: process is
     begin
-        in_bit <= '0';
-        wait for 1 ns;
-        in_bit <= '1';
-        wait for 1 ns;
-        in_bit <= '0';
+        rst <= '0';
+        enable <= '1';
+        --data <=
+        --data <= x"10050350350355030553ABED23030303443434" ;
+        wait until rising_edge(done);
+        wait for 10 ns;
 
         report "Tests Complete";
 
