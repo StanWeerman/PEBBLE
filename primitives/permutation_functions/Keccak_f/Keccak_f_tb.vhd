@@ -36,7 +36,7 @@ begin
         rst <= '0';
         enable <= '1';
         --data <=
-        --data <= x"10050350350355030553ABED23030303443434" ;
+        data_in <= x"11111111111111111111" & (1519 downto 0 => '0');
         wait until rising_edge(done);
         wait for 10 ns;
 
