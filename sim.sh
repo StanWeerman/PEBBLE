@@ -1,4 +1,6 @@
 export name="$1"
+script_dir=$(pwd)
+base_name=$(basename ${name})
 export dump="$2"
 DUMPO=0
 DUMPC=0
@@ -57,19 +59,21 @@ if [ -f file_list.txt ]
 then
 nvc -a -f file_list.txt
 else
-    nvc -a $name.vhd ${name}_tb.vhd
+    nvc -a $base_name.vhd ${base_name}_tb.vhd
 fi
 
-nvc -e ${name}_tb
-nvc -r ${name}_tb --wave=build/wave.fst --dump-arrays
+nvc -e ${base_name}_tb
+nvc -r ${base_name}_tb --wave=build/wave.fst --dump-arrays
 
 if [ -f build/wave.fst ]
 then
     if [ $WAVE -eq 1 ]; then
+        echo ${script_dir}
+        echo $(pwd)
         if [ -f wave_names.txt ]; then
             cp wave_names.txt build/wave_names.txt
-            nohup gtkwave build/wave.fst --script=../add_waves.tcl s > build/wave.txt &
-        else nohup gtkwave build/wave.fst --script=../add_waves.tcl s > build/wave.txt &
+            nohup gtkwave build/wave.fst --script=${script_dir}/add_waves.tcl s > build/wave.txt &
+        else nohup gtkwave build/wave.fst --script=${script_dir}/add_waves.tcl s > build/wave.txt &
         fi
     fi
 fi
