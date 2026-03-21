@@ -1,4 +1,10 @@
-use std::fmt::Display;
+pub mod lane;
+use lane::Lane;
+
+use std::{
+    fmt::Display,
+    ops::{Add, BitAnd, BitXor, Not},
+};
 
 pub struct State<const WIDTH: usize> {
     state: [[[bool; WIDTH]; 5]; 5],
@@ -32,29 +38,42 @@ impl<const WIDTH: usize> State<WIDTH> {
     pub fn chi(&mut self) {
         for y in 0..5 {
             for x in 0..5 {
-                self.state[x][y] = not(self.state[x][y]);
+                self.state[x][y] = Lane(self.state[x][y])
+                    ^ Lane(
+                        Lane(!Lane(self.state[(x + 1) % 4][y])) & Lane(self.state[(x + 2) % 4][y]),
+                    );
             }
         }
     }
     pub fn theta(&mut self) {}
     pub fn pi(&mut self) {}
     pub fn rho(&mut self) {}
-    pub fn iota(&mut self) {}
-}
-
-pub fn not<const WIDTH: usize>(lane: [bool; WIDTH]) -> [bool; WIDTH] {
-    let mut a = [false; WIDTH];
-    for i in 0..WIDTH {
-        a[i] = !lane[i]
+    pub fn iota(&mut self, round: usize) {
+        self.state[0][0] = Lane(self.state[0][0]) ^ Lane(self.get_rc_i(round));
     }
-    return a;
+    pub fn get_rc_i(&mut self, round: usize) -> [bool; WIDTH] {
+        let mut rc_i = [false; WIDTH];
+        rc_i
+    }
 }
 
-pub fn and<const WIDTH: usize>(lane_a: [bool; WIDTH], lane_b: [bool; WIDTH]) -> [bool; WIDTH] {
-    let mut a = [false; WIDTH];
-    for i in 0..WIDTH {}
-    return a;
+impl<const WIDTH: usize> Not for Lane<WIDTH> {
+    type Output = [bool; WIDTH];
+
+    fn not(self) -> Self::Output {
+        let mut a = [false; WIDTH];
+        for i in 0..WIDTH {
+            a[i] = !self[i]
+        }
+        return a;
+    }
 }
+
+// pub fn and<const WIDTH: usize>(lane_a: [bool; WIDTH], lane_b: [bool; WIDTH]) -> [bool; WIDTH] {
+//     let mut a = [false; WIDTH];
+//     for i in 0..WIDTH {}
+//     return a;
+// }
 
 #[cfg(test)]
 mod tests {
