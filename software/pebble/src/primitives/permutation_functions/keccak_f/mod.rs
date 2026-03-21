@@ -2,11 +2,7 @@ pub mod lane;
 use lane::Lane;
 use lfsr::{LFSR, galois::Galois8};
 
-use std::{
-    f64::consts::LOG10_2,
-    fmt::Display,
-    ops::{Add, BitAnd, BitXor, Not},
-};
+use std::fmt::Display;
 
 pub struct State<const WIDTH: usize> {
     state: [[[bool; WIDTH]; 5]; 5],
@@ -40,10 +36,20 @@ impl<const WIDTH: usize> State<WIDTH> {
             lfsr: Galois8::new(0),
         }
     }
-    pub fn round(&mut self){
-        self.chi();
+    pub fn hash(&mut self) {
+        let mut round = 0;
+        while round < 24 {
+            self.round(&mut round);
+            round += 1;
+        }
+    }
+    pub fn round(&mut self, round: &mut usize) {
         self.theta();
-        self.
+        self.rho();
+        self.pi();
+        self.chi();
+        self.iota(*round);
+        *round += 1;
     }
     pub fn chi(&mut self) {
         for y in 0..5 {
@@ -77,7 +83,7 @@ impl<const WIDTH: usize> State<WIDTH> {
             for y in 0..5 {
                 let x_new = 1 * y;
                 let y_new = 2 * x + 3 * y;
-                new_state[x_new][y_new] =self.state[x][y]
+                new_state[x_new][y_new] = self.state[x][y]
             }
         }
         self.state = new_state;
