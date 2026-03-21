@@ -40,7 +40,11 @@ impl<const WIDTH: usize> State<WIDTH> {
             lfsr: Galois8::new(0),
         }
     }
-    pub fn round(&mut self) {}
+    pub fn round(&mut self){
+        self.chi();
+        self.theta();
+        self.
+    }
     pub fn chi(&mut self) {
         for y in 0..5 {
             for x in 0..5 {
@@ -73,7 +77,7 @@ impl<const WIDTH: usize> State<WIDTH> {
             for y in 0..5 {
                 let x_new = 1 * y;
                 let y_new = 2 * x + 3 * y;
-                new_state[x_new][y_new] = self.state[x][y]
+                new_state[x_new][y_new] =self.state[x][y]
             }
         }
         self.state = new_state;
