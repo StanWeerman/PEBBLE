@@ -1,7 +1,4 @@
-use std::{
-    fmt::Display,
-    ops::{Add, BitAnd, BitXor, Deref, DerefMut, Not},
-};
+use std::ops::{BitAnd, BitXor, Deref, DerefMut, Not};
 
 #[derive(Debug, Clone, Copy)]
 pub struct Lane<const WIDTH: usize>(pub [bool; WIDTH]);
