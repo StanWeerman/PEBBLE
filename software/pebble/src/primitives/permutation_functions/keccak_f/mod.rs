@@ -40,6 +40,7 @@ impl<const WIDTH: usize> State<WIDTH> {
             lfsr: Galois8::new(0),
         }
     }
+    pub fn round(&mut self) {}
     pub fn chi(&mut self) {
         for y in 0..5 {
             for x in 0..5 {
@@ -60,13 +61,23 @@ impl<const WIDTH: usize> State<WIDTH> {
         }
         let mut d = [[false; WIDTH]; 5];
         for x in 0..5 {
-            d[x] = Lane(c[(x - 1) % 5]) ^ Lane(c[(x + 1) % 5]).rotate(1);
+            d[x] = Lane(c[(x - 1) % 5]) ^ Lane(Lane(c[(x + 1) % 5]).rotate(1));
             for y in 0..5 {
                 self.state[x][y] = Lane(self.state[x][y]) ^ Lane(d[x]);
             }
         }
     }
-    pub fn pi(&mut self) {}
+    pub fn pi(&mut self) {
+        let mut new_state = [[[false; WIDTH]; 5]; 5];
+        for x in 0..5 {
+            for y in 0..5 {
+                let x_new = 1 * y;
+                let y_new = 2 * x + 3 * y;
+                new_state[x_new][y_new] = self.state[x][y]
+            }
+        }
+        self.state = new_state;
+    }
     pub fn rho(&mut self) {
         let (mut x, mut y) = (1, 0);
         for t in 0..24 {

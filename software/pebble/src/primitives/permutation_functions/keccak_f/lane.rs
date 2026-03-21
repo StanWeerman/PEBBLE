@@ -10,12 +10,12 @@ impl<const WIDTH: usize> Lane<WIDTH> {
     pub fn new() -> Self {
         Self([false; WIDTH])
     }
-    pub fn rotate(&mut self, count: usize) -> Self {
+    pub fn rotate(&mut self, count: usize) -> [bool; WIDTH] {
         let mut ret = self.clone();
         for i in 0..WIDTH {
             ret[i] = self[(i + count) % WIDTH];
         }
-        ret
+        ret.0
     }
 }
 
