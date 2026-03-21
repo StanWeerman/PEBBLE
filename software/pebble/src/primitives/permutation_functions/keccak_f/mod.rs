@@ -36,7 +36,7 @@ impl<const WIDTH: usize> State<WIDTH> {
             lfsr: Galois8::new(0),
         }
     }
-    pub fn hash(&mut self) {
+    pub fn permute(&mut self) {
         let mut round = 0;
         while round < 24 {
             self.round(&mut round);
@@ -71,7 +71,7 @@ impl<const WIDTH: usize> State<WIDTH> {
         }
         let mut d = [[false; WIDTH]; 5];
         for x in 0..5 {
-            d[x] = Lane(c[(x - 1) % 5]) ^ Lane(Lane(c[(x + 1) % 5]).rotate(1));
+            d[x] = Lane(c[(x + 5) % 5]) ^ Lane(Lane(c[(x + 1) % 5]).rotate(1));
             for y in 0..5 {
                 self.state[x][y] = Lane(self.state[x][y]) ^ Lane(d[x]);
             }
@@ -81,8 +81,8 @@ impl<const WIDTH: usize> State<WIDTH> {
         let mut new_state = [[[false; WIDTH]; 5]; 5];
         for x in 0..5 {
             for y in 0..5 {
-                let x_new = 1 * y;
-                let y_new = 2 * x + 3 * y;
+                let x_new = (1 * y) % 5;
+                let y_new = (2 * x + 3 * y) % 5;
                 new_state[x_new][y_new] = self.state[x][y]
             }
         }
@@ -94,7 +94,7 @@ impl<const WIDTH: usize> State<WIDTH> {
             self.state[x][y] = Lane(self.state[x][y]).rotate((t + 1) * (t + 2) / 2);
             let x_new = 1 * y;
             let y_new = 2 * x + 3 * y;
-            (x, y) = (x_new, y_new)
+            (x, y) = (x_new % 5, y_new % 5)
         }
     }
     pub fn iota(&mut self, round: usize) {
@@ -128,7 +128,7 @@ mod tests {
     fn first_test() {
         println!("Test 1:");
         let mut state: State<50> = State::new();
-        state.chi();
+        state.permute();
         println!("{}", state);
     }
 }
