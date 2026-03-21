@@ -1,10 +1,34 @@
+use std::fmt::Display;
+
 fn main() {
     println!("TesT");
-    let state: State<50> = State::new();
+    let mut state: State<50> = State::new();
+    state.chi();
+    println!("{}", state);
 }
 
 pub struct State<const WIDTH: usize> {
     state: [[[bool; WIDTH]; 5]; 5],
+}
+impl<const WIDTH: usize> Display for State<WIDTH> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        //write!(f, "[");
+        for i in self.state {
+            write!(f, "\n");
+            for j in i {
+                write!(f, "\n");
+                for k in j {
+                    if k == false {
+                        write!(f, "{}", 0);
+                    } else {
+                        write!(f, "{}", 1);
+                    }
+                }
+            }
+        }
+        write!(f, "")
+        //write!(f, "]")
+    }
 }
 impl<const WIDTH: usize> State<WIDTH> {
     pub fn new() -> Self {
@@ -13,8 +37,8 @@ impl<const WIDTH: usize> State<WIDTH> {
         }
     }
     pub fn chi(&mut self) {
-        for y in 0..4 {
-            for x in 0..4 {
+        for y in 0..5 {
+            for x in 0..5 {
                 self.state[x][y] = not(self.state[x][y]);
             }
         }
