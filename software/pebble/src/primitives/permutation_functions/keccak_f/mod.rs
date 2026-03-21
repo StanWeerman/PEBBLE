@@ -1,13 +1,16 @@
 pub mod lane;
 use lane::Lane;
+use lfsr::{LFSR, galois::Galois8};
 
 use std::{
+    f64::consts::LOG10_2,
     fmt::Display,
     ops::{Add, BitAnd, BitXor, Not},
 };
 
 pub struct State<const WIDTH: usize> {
     state: [[[bool; WIDTH]; 5]; 5],
+    lfsr: Galois8,
 }
 impl<const WIDTH: usize> Display for State<WIDTH> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
@@ -30,9 +33,11 @@ impl<const WIDTH: usize> Display for State<WIDTH> {
     }
 }
 impl<const WIDTH: usize> State<WIDTH> {
+    pub const L: usize = (WIDTH / 25).ilog2() as usize;
     pub fn new() -> Self {
         State {
             state: [[[false; WIDTH]; 5]; 5],
+            lfsr: Galois8::new(0),
         }
     }
     pub fn chi(&mut self) {
@@ -45,35 +50,54 @@ impl<const WIDTH: usize> State<WIDTH> {
             }
         }
     }
-    pub fn theta(&mut self) {}
+    pub fn theta(&mut self) {
+        let mut c = [[false; WIDTH]; 5];
+        for x in 0..5 {
+            c[x] = (self.state[x][0]).clone();
+            for y in 1..5 {
+                c[x] = Lane(c[x]) ^ Lane(self.state[x][y]);
+            }
+        }
+        let mut d = [[false; WIDTH]; 5];
+        for x in 0..5 {
+            d[x] = Lane(c[(x - 1) % 5]) ^ Lane(c[(x + 1) % 5]).rotate(1);
+            for y in 0..5 {
+                self.state[x][y] = Lane(self.state[x][y]) ^ Lane(d[x]);
+            }
+        }
+    }
     pub fn pi(&mut self) {}
-    pub fn rho(&mut self) {}
+    pub fn rho(&mut self) {
+        let (mut x, mut y) = (1, 0);
+        for t in 0..24 {
+            self.state[x][y] = Lane(self.state[x][y]).rotate((t + 1) * (t + 2) / 2);
+            let x_new = 1 * y;
+            let y_new = 2 * x + 3 * y;
+            (x, y) = (x_new, y_new)
+        }
+    }
     pub fn iota(&mut self, round: usize) {
         self.state[0][0] = Lane(self.state[0][0]) ^ Lane(self.get_rc_i(round));
     }
     pub fn get_rc_i(&mut self, round: usize) -> [bool; WIDTH] {
         let mut rc_i = [false; WIDTH];
+        for j in 0..Self::L {
+            rc_i[(2 as usize).pow(j as u32) - 1] = self.get_lfsr(j + 7 * round);
+        }
         rc_i
     }
-}
-
-impl<const WIDTH: usize> Not for Lane<WIDTH> {
-    type Output = [bool; WIDTH];
-
-    fn not(self) -> Self::Output {
-        let mut a = [false; WIDTH];
-        for i in 0..WIDTH {
-            a[i] = !self[i]
+    pub fn get_lfsr(&mut self, t: usize) -> bool {
+        for _ in 0..t {
+            self.lfsr.inc();
         }
-        return a;
+        let ret = (self.lfsr.get_state() & 1) == 1;
+        self.reset_lfsr();
+        ret
+    }
+    pub fn reset_lfsr(&mut self) {
+        self.lfsr = Galois8::new(1);
     }
 }
-
-// pub fn and<const WIDTH: usize>(lane_a: [bool; WIDTH], lane_b: [bool; WIDTH]) -> [bool; WIDTH] {
-//     let mut a = [false; WIDTH];
-//     for i in 0..WIDTH {}
-//     return a;
-// }
 
 #[cfg(test)]
 mod tests {
