@@ -36,6 +36,14 @@ impl<const WIDTH: usize> State<WIDTH> {
             lfsr: Galois8::new(0),
         }
     }
+    pub fn add_to_state(&mut self, new_state: [[[bool; WIDTH]; 5]; 5]) {
+        for x in 0..5 {
+            for y in 0..5 {
+                self.state[x][y] = Lane(self.state[x][y]) ^ Lane(new_state[x][y])
+            }
+        }
+        todo!()
+    }
     pub fn permute(&mut self) {
         let mut round = 0;
         while round < 24 {
