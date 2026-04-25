@@ -29,9 +29,30 @@ impl<const WIDTH: usize, const RATE: usize> Sponge<WIDTH, RATE> {
                 .try_into()
                 .unwrap();
         }
-        todo!()
+        return new_state;
     }
-    fn squeeze() -> Vec<bool> {
-        todo!()
+    fn state_to_block(state: [[[bool; WIDTH]; 5]; 5]) -> [bool; RATE] {
+        let mut new_block = [false; RATE];
+        let mut index = 0;
+        for i in state {
+            for j in i {
+                for k in j {
+                    if index >= RATE {
+                        return new_block;
+                    }
+                    new_block[index] = k;
+                    index = index + 1;
+                }
+            }
+        }
+        return new_block;
+    }
+    fn squeeze(&mut self) -> [bool; RATE] {
+        for block in &mut self.msg {
+            let next_msg_state = Sponge::block_to_state(block);
+            self.state.add_to_state(next_msg_state);
+            self.state.permute();
+        }
+        return Sponge::state_to_block(self.state.get_state());
     }
 }

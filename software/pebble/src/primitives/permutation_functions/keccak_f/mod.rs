@@ -36,6 +36,9 @@ impl<const WIDTH: usize> State<WIDTH> {
             lfsr: Galois8::new(0),
         }
     }
+    pub fn get_state(&mut self) -> [[[bool; WIDTH]; 5]; 5] {
+        return self.state.clone();
+    }
     pub fn add_to_state(&mut self, new_state: [[[bool; WIDTH]; 5]; 5]) {
         for x in 0..5 {
             for y in 0..5 {
