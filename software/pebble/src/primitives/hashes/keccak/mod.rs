@@ -14,9 +14,12 @@ impl<const WIDTH: usize, const RATE: usize> Sponge<WIDTH, RATE> {
     }
     fn padding(msg: Vec<bool>) -> Vec<[bool; RATE]> {
         let mut padded_msg: Vec<[bool; RATE]> = vec![];
+        println!("{:?}", msg);
         for i in 0..((msg.len() / RATE) - 1) {
+            print!("{}", i);
             let mut arr = [false; RATE];
             arr.copy_from_slice(&msg[(RATE * i)..(RATE * (i + 1))]);
+            println!("{:?}", arr);
             padded_msg.append(&mut vec![arr]);
         }
         return padded_msg;
@@ -78,8 +81,11 @@ mod tests {
     #[test]
     fn first_test() {
         println!("Test 1:");
-        let mut sponge: Sponge<50, 10> = Sponge::new(vec![
-            true, true, false, false, false, false, false, false, false, false,
+        let mut sponge: Sponge<50, 5> = Sponge::new(vec![
+            true, true, false, false, false, true, false, false, true, false, true, true, false,
+            false, true, false, true, false, false, true, true, true, false, false, true, false,
+            false, true, false, true, true, true, false, false, false, true, false, false, true,
+            false,
         ]);
         let result = sponge.run_keccak();
         println!("Result is: {:?}", result);
