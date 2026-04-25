@@ -1,4 +1,4 @@
-use crate::primitives::permutation_functions::keccak_f::{State, lane::Lane};
+use crate::primitives::permutation_functions::keccak_f::State;
 
 pub struct Sponge<const WIDTH: usize, const RATE: usize> {
     state: State<WIDTH>,
@@ -85,7 +85,13 @@ mod tests {
             true, true, false, false, false, true, false, false, true, false, true, true, false,
             false, true, false, true, false, false, true, true, true, false, false, true, false,
             false, true, false, true, true, true, false, false, false, true, false, false, true,
-            false,
+            false, true, true, false, false, false, true, false, false, true, false, true, true,
+            false, false, true, false, true, false, false, true, true, true, false, false, true,
+            false, false, true, false, true, true, true, false, false, false, true, false, false,
+            true, false, true, true, false, false, false, true, false, false, true, false, true,
+            true, false, false, true, false, true, false, false, true, true, true, false, false,
+            true, false, false, true, false, true, true, true, false, false, false, true, false,
+            false, true, false,
         ]);
         let result = sponge.run_keccak();
         println!("Result is: {:?}", result);

@@ -45,7 +45,6 @@ impl<const WIDTH: usize> State<WIDTH> {
                 self.state[x][y] = Lane(self.state[x][y]) ^ Lane(new_state[x][y])
             }
         }
-        todo!()
     }
     pub fn permute(&mut self) {
         let mut round = 0;
