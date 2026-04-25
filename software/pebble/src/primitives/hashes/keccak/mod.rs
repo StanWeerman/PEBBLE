@@ -15,6 +15,14 @@ impl<const WIDTH: usize, const RATE: usize> Sponge<WIDTH, RATE> {
     fn padding(msg: Vec<bool>) -> Vec<[bool; RATE]> {
         todo!()
     }
+    fn run_keccak(&mut self) -> Vec<bool> {
+        self.absorb();
+        let mut output: Vec<bool> = vec![];
+        for _ in 0..10 {
+            output.extend_from_slice(&self.squeeze());
+        }
+        return output;
+    }
     fn absorb(&mut self) {
         for block in &mut self.msg {
             let next_msg_state = Sponge::block_to_state(block);
