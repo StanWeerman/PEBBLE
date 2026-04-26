@@ -96,4 +96,23 @@ mod tests {
         let result = sponge.run_keccak();
         println!("Result is: {:?}", result);
     }
+    #[test]
+    fn string_test() {
+        println!("Test String:");
+        let test_string = "Hello World";
+        let test_bytes = test_string.as_bytes();
+        let mut test_bits = vec![];
+        for byte in test_bytes {
+            let mut test_bit = [false; 8];
+            for i in 0..7 {
+                let shifted_byte = byte >> i;
+                let cur_bit = shifted_byte & 1;
+                test_bit[7 - i] = (cur_bit == 1);
+            }
+            test_bits.extend_from_slice(&test_bit)
+        }
+        let mut sponge: Sponge<50, 5> = Sponge::new(test_bits);
+        let result = sponge.run_keccak();
+        println!("Result is: {:?}", result);
+    }
 }
